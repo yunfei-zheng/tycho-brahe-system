@@ -15,12 +15,15 @@
 # Add new features, like speeding up or slowing down
 # maybe make the planets sizes bigger
 
+
+# In Tycho Brahe's system, they use angle and trig for the circulator patterns 
+
 import pygame
 import math
 
 pygame.init()
-WIDTH, HEIGHT = pygame.display.Info().current_w, pygame.display.Info().current_h
-WINDOW = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+WIDTH, HEIGHT = 400, 400
+WINDOW = pygame.display.set_mode((800,800))
 
 # Colors of planets
 COLOR_WHITE = (255, 255, 255)
