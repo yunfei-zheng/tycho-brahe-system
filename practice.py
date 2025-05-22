@@ -44,11 +44,18 @@ SUN_DISTANCE_FROM_EARTH = 100
 def sun_position(radius, orbit_speed, time, init_angle):
     x = WIDTH/2 + SUN_DISTANCE_FROM_EARTH*(math.cos(time) + radius*(math.cos(orbit_speed * time + init_angle)))
     y = HEIGHT/2 + SUN_DISTANCE_FROM_EARTH*(math.sin(time) + radius*(math.sin(orbit_speed * time + init_angle)))
+
+    PlanetAndEpicycles.sun_position_x = x
+    PlanetAndEpicycles.sun_position_y = y
+
     return x, y
 def planet_position(radius, orbit_speed, time, init_angle, distance_from_sun):
-    sun_x, sun_y = sun_position(radius, orbit_speed, time, init_angle)
+    sun_x, sun_y = PlanetAndEpicycles.sun_position_x, PlanetAndEpicycles.sun_position_y
+
     x = sun_x + distance_from_sun * math.cos(orbit_speed * time + init_angle)
     y = sun_y + distance_from_sun * math.sin(orbit_speed * time + init_angle)
+
+    print(sun_x, sun_y, x, y)
     return x, y
 
 
@@ -57,6 +64,9 @@ class PlanetAndEpicycles:
     G = 6.67428e-11  # Gravitational constant
     TIMESTEP = 60 * 60 * 24 * 2  # Seconds in 2 days
     SCALE = 200 / AU
+
+    sun_position_x = 0
+    sun_position_y = 0
     
     def __init__(self, color, orbit_speed, init_angle, time, radius, distance_from_sun, is_sun=False):
         self.x = WIDTH/2  # Initialize at center
@@ -70,6 +80,7 @@ class PlanetAndEpicycles:
         self.sun_x = WIDTH/2
         self.sun_y = HEIGHT/2
         self.distance_from_sun = distance_from_sun
+
     def draw(self, window, draw_line):
         if self.is_sun:
             # Sun orbits around Earth
@@ -99,7 +110,7 @@ def main():
     last_reported_second = -1
     
     sun = PlanetAndEpicycles(COLOR_SUN, 0.001, 0, 0, 20, 0, is_sun=True)  # Sun orbiting Earth
-    venus = PlanetAndEpicycles(COLOR_VENUS, 0.006, 0, 0, 5, 0, is_sun=False)  # Venus orbiting Sun
+    venus = PlanetAndEpicycles(COLOR_VENUS, 0.006, 20, 0, 5, 30, is_sun=False)  # Venus orbiting Sun
     draw_line = True
     
     planets = [sun, venus]
