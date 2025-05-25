@@ -26,9 +26,12 @@ WINDOW = pygame.display.set_mode((800,800))
 # Constants: Colors of planets and universe
 COLOR_WHITE = (255, 255, 255)
 COLOR_UNIVERSE = (36, 36, 36)
+COLOR_EARTH = (107, 147, 214)
 COLOR_SUN = (252, 150, 1)
 COLOR_VENUS = (80, 200, 120)  # soft, vibrant green
-COLOR_EARTH = (107, 147, 214)
+
+FONT_1 = pygame.font.SysFont("Trebuchet MS", 21)
+FONT_2 = pygame.font.SysFont("Trebuchet MS", 16)
 
 EARTH_POSITION = WIDTH/2, HEIGHT/2
 SUN_DISTANCE_FROM_EARTH = 200 
@@ -67,13 +70,13 @@ class PlanetAndEpicycles:
     sun_x = 0
     sun_y = 0
     
-    def __init__(self, color, orbit_speed, init_angle, time, radius, distance_from_sun, is_sun=False):
+    def __init__(self, color, orbit_speed, init_angle, radius, distance_from_sun, is_sun):
         self.x = WIDTH  # Initialize at center
         self.y = HEIGHT
         self.orbit = []
         self.orbit_speed = orbit_speed
         self.init_angle = init_angle
-        self.time = time
+        self.time = 0
         self.radius = radius
         self.color = color
         self.is_sun = is_sun
@@ -115,16 +118,16 @@ def draw_earth(window):
 
 def main():
     run = True
-    pause = False
+    pause = False #(Doesn't work rn)
     show_distance = False
     clock = pygame.time.Clock()
     real_time = 0
-    last_reported_second = -1
+    #last_reported_second = -1
     draw_line = True
     
-    #( color, orbit_speed, init_angle, time, radius, distance_from_sun, is_sun=False):
-    sun = PlanetAndEpicycles(COLOR_SUN, 0.001, 0, 0, 20, 0, is_sun=True)  # Sun orbiting Earth
-    venus = PlanetAndEpicycles(COLOR_VENUS, 6, 20, 0, 5, 30, is_sun=False)  # Venus orbiting Sun
+    #( color, orbit_speed, init_angle, radius, distance_from_sun, is_sun=False):
+    sun = PlanetAndEpicycles(COLOR_SUN, 0.001, 0, 20, 0, True)  # Sun orbiting Earth
+    venus = PlanetAndEpicycles(COLOR_VENUS, 6, 20, 5, 30, False)  # Venus orbiting Sun
     
     planets = [sun, venus]
 
@@ -133,11 +136,10 @@ def main():
         real_time += dt
 
         # Round down to the nearest full second
-        current_second = math.floor(real_time)
-
+        #current_second = math.floor(real_time)
         # Only print once per new second
-        if current_second > last_reported_second:
-            last_reported_second = current_second
+        #if current_second > last_reported_second:
+            #last_reported_second = current_second
             #print(f"{current_second} seconds")
         
         for event in pygame.event.get():
@@ -158,6 +160,23 @@ def main():
                 planet.update_position(real_time)
                 planet.draw(WINDOW, draw_line)
         
+        # Rendering the text, map legend, etc.
+        fps_text = FONT_1.render("FPS: " + str(int(clock.get_fps())), True, COLOR_WHITE)
+        WINDOW.blit(fps_text, (15, 15))
+        text_surface = FONT_1.render("Press X or ESC to exit", True, COLOR_WHITE)
+        WINDOW.blit(text_surface, (15, 45))
+        text_surface = FONT_1.render("Press S to turn on/off drawing orbit lines", True, COLOR_WHITE)
+        WINDOW.blit(text_surface, (15, 105))
+
+        sun_surface = FONT_1.render("- Sun", True, COLOR_SUN)
+        WINDOW.blit(sun_surface, (15, 285))
+
+        venus_surface = FONT_1.render("- Venus", True, COLOR_VENUS)
+        WINDOW.blit(venus_surface, (15, 345))
+
+        earth_surface = FONT_1.render("- Earth", True, COLOR_EARTH)
+        WINDOW.blit(earth_surface, (15, 375))
+
         # Update the display
         pygame.display.update()
     
