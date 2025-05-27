@@ -1,6 +1,6 @@
 # ===========================================
 # - Tycho Brahe's System of the Universe Simulation
-# - Yunfei Zheng, Joyce Zou ---
+# - Yunfei Zheng, Joyce Zou, Minh Nguyen ---
 # - Understanding the Universe: From Atoms to the Big Bang (SP25)
 # - May 2025
 # ===========Modified From===================
@@ -34,7 +34,7 @@ FONT_1 = pygame.font.SysFont("Trebuchet MS", 21)
 FONT_2 = pygame.font.SysFont("Trebuchet MS", 16)
 
 EARTH_POSITION = WIDTH/2, HEIGHT/2
-SUN_DISTANCE_FROM_EARTH = 200 
+SUN_DISTANCE_FROM_EARTH = 200
 
 # Definite circulator 
 # Ellipse travel certain angle per time
@@ -62,7 +62,7 @@ def planet_position(orbit_speed, time, init_angle, distance_from_sun):
     return x, y
 
 class PlanetAndEpicycles: 
-    AU = 149.6e6 * 1000  # Astronomical unit
+    AU = 149.6e6 * 1000  # Astronomical unit to km
     G = 6.67428e-11  # Gravitational constant
     TIMESTEP = 60 * 60 * 24 * 2  # Seconds in 2 days
     SCALE = 200 / AU
