@@ -87,29 +87,29 @@ class PlanetAndEpicycles:
         self.sun_y = HEIGHT
         self.distance_from_sun = distance_from_sun
 
-    def draw(self, window, draw_line):
-        x = self.x * self.SCALE + WIDTH
-        y = self.y * self.SCALE + HEIGHT
+    def draw(self, window, move_x, move_y, draw_line):
+        x = self.x * self.SCALE
+        y = self.y * self.SCALE
 
         if len(self.orbit) > 2:
             updated_points = []
             for point in self.orbit:
                 x, y = point
-                #x = x * self.SCALE + WIDTH
-                #y = y * self.SCALE + HEIGHT
+                x = x * self.SCALE
+                y = y * self.SCALE
                 #updated_points.append((x + move_x, y + move_y))
-                updated_points.append((x, y))
+                updated_points.append((x + move_x, y + move_y))
             if draw_line:
                 pygame.draw.lines(window, self.color, False, updated_points, 1)
         if self.is_sun:
             # Sun orbits around Earth
-            self.x, self.y = sun_position(0, self.orbit_speed, self.time, self.init_angle,)
-            pygame.draw.circle(window, self.color, (int(self.x), int(self.y)), self.radius)
+            self.x, self.y = sun_position(0, self.orbit_speed, self.time, self.init_angle)
+            pygame.draw.circle(window, self.color, (x + move_x, y + move_y), self.radius)
         else:
             # Other planets orbit around Sun
             # Then calculate planet's position relative to Sun
             self.x, self.y = planet_position(self.orbit_speed, self.time, self.init_angle, self.distance_from_sun)
-            pygame.draw.circle(window, self.color, (int(self.x), int(self.y)), self.radius)
+            pygame.draw.circle(window, self.color, (x + move_x, y + move_y), self.radius)
     
     def update_position(self, time):
         self.time = time  # Update the time property
@@ -119,9 +119,10 @@ class PlanetAndEpicycles:
     def update_scale(self, scale):
         self.radius *= scale
 
-def draw_earth(window):
+def draw_earth(window, move_x, move_y):
     # Draw Earth at the center
-    pygame.draw.circle(window, COLOR_EARTH, (WIDTH, HEIGHT), 15 * PlanetAndEpicycles.SCALE)
+    #sc = PlanetAndEpicycles.SCALE
+    pygame.draw.circle(window, COLOR_EARTH, (WIDTH + move_x, HEIGHT + move_y), 15 * PlanetAndEpicycles.SCALE)
 
 def main():
     run = True
@@ -130,6 +131,8 @@ def main():
     clock = pygame.time.Clock()
     real_time = 0
     #last_reported_second = -1
+    move_x = 0
+    move_y = 0
     draw_line = True
     
     #( color, orbit_speed, init_angle, radius, distance_from_sun, is_sun=False):
@@ -166,15 +169,28 @@ def main():
         
         # Clear the screen
         WINDOW.fill(COLOR_UNIVERSE)
+
+        keys = pygame.key.get_pressed()
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        window_w, window_h = pygame.display.get_surface().get_size()
+        distance = 10
+        if keys[pygame.K_LEFT] or mouse_x == 0:
+            move_x += distance
+        if keys[pygame.K_RIGHT] or mouse_x == window_w - 1:
+            move_x -= distance
+        if keys[pygame.K_UP] or mouse_y == 0:
+            move_y += distance
+        if keys[pygame.K_DOWN] or mouse_y == window_h - 1:
+            move_y -= distance
         
         # Draw Earth first (it's stationary)
-        draw_earth(WINDOW)
+        draw_earth(WINDOW, move_x, move_y)
         
         # Draw and update planets
         for planet in planets:
             if not pause:
                 planet.update_position(real_time)
-                planet.draw(WINDOW, draw_line)
+                planet.draw(WINDOW, move_x, move_y, draw_line)
         
         # Rendering the text, map legend, etc.
         fps_text = FONT_1.render("FPS: " + str(int(clock.get_fps())), True, COLOR_WHITE)
