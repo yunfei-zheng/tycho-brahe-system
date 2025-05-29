@@ -30,6 +30,7 @@ pygame.display.set_caption("Tycho Brahe Solar System")
 # Colors
 COLOR_BG     = (36, 36, 36)
 COLOR_EARTH  = (107, 147, 214)
+COLOR_MOON   = (128, 128, 128)
 COLOR_SUN    = (252, 150,   1)
 COLOR_VENUS  = ( 80, 200, 120)
 COLOR_WHITE  = (255, 255, 255)
@@ -39,18 +40,20 @@ FONT = pygame.font.SysFont("Trebuchet MS", 20)
 
 # Distances (in pixels)
 SUN_DIST = 200  # Sun orbits Earth at this radius
+MOON_DIST = 30
 
 class Body:
     SCALE = 1.0  # global scale factor for zoom
     sun_world = (0.0, 0.0)  # world coords of Sun
 
-    def __init__(self, color, speed, init_angle, radius, dist_from_sun, is_sun=False):
+    def __init__(self, color, speed, init_angle, radius, dist_from_sun, is_sun=False, is_moon=False):
         self.color = color
         self.speed = speed
         self.angle = init_angle
         self.radius = radius
         self.dist = dist_from_sun
         self.is_sun = is_sun
+        self.is_moon = is_moon
         self.trail = []  # stores past world positions
 
     def update(self, dt):
@@ -62,6 +65,9 @@ class Body:
             wx = SUN_DIST * math.cos(self.angle)
             wy = SUN_DIST * math.sin(self.angle)
             Body.sun_world = (wx, wy)
+        elif self.is_moon:
+            wx = MOON_DIST * math.cos(self.angle)
+            wy = MOON_DIST * math.sin(self.angle)
         else:
             # planet orbits Sun's world position
             sx, sy = Body.sun_world
@@ -102,8 +108,9 @@ def main():
 
     # create bodies
     sun = Body(COLOR_SUN,   0.5, 0.0, 20, 0, is_sun=True)
+    moon = Body(COLOR_MOON, 20, math.radians(90), 5, 0, is_moon=True)
     venus = Body(COLOR_VENUS, 1.5, math.radians(45), 8, 100)
-    bodies = [sun, venus]
+    bodies = [sun, moon, venus]
 
     while running:
         dt = clock.tick(60) / 1000.0
