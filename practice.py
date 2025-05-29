@@ -38,7 +38,7 @@ COLOR_EARTH = (107, 147, 214)
 
 #  k =  speed
 # a  = time variablt 
-EARTH_POSITION = WIDTH/2, HEIGHT/2
+EARTH_POSITION = WIDTH*2/3, HEIGHT*2/3,
 SUN_DISTANCE_FROM_EARTH = 100 
 
 def sun_position(radius, orbit_speed, time, init_angle):
@@ -53,11 +53,6 @@ def planet_position(radius, orbit_speed, time, init_angle, distance_from_sun):
 
 
 class PlanetAndEpicycles: 
-    AU = 149.6e6 * 1000  # Astronomical unit
-    G = 6.67428e-11  # Gravitational constant
-    TIMESTEP = 60 * 60 * 24 * 2  # Seconds in 2 days
-    SCALE = 200 / AU
-    
     def __init__(self, color, orbit_speed, init_angle, time, radius, distance_from_sun, is_sun=False):
         self.x = WIDTH/2  # Initialize at center
         self.y = HEIGHT/2
@@ -79,8 +74,8 @@ class PlanetAndEpicycles:
             # Other planets orbit around Sun
             # Then calculate planet's position relative to Sun
             self.x, self.y = planet_position(self.radius, self.orbit_speed, self.time, self.init_angle, self.distance_from_sun)
-            if draw_line:
-                pygame.draw.lines(window, self.color, False, [(self.sun_x, self.sun_y), (self.x, self.y)], 1)
+            # if draw_line:
+            #     pygame.draw.lines(window, self.color, False, [(self.sun_x, self.sun_y), (self.x, self.y)], 1)
             pygame.draw.circle(window, self.color, (int(self.x), int(self.y)), self.radius)
     
     def update_position(self, time):
@@ -100,7 +95,7 @@ def main():
     
     sun = PlanetAndEpicycles(COLOR_SUN, 0.001, 0, 0, 20, 0, is_sun=True)  # Sun orbiting Earth
     venus = PlanetAndEpicycles(COLOR_VENUS, 0.006, 0, 0, 5, 0, is_sun=False)  # Venus orbiting Sun
-    draw_line = True
+    draw_line = False
     
     planets = [sun, venus]
 
