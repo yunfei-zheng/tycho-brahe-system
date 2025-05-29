@@ -107,6 +107,7 @@ def main():
     running = True
     ox = oy = 0
     show_trails = True
+    timescale = 1
 
     # create bodies: sun, moon, and planets
     sun     = Body(COLOR_SUN,     0.5,  0.0, 20,    0, kind='sun')
@@ -119,13 +120,15 @@ def main():
     bodies = [sun, moon, mercury, venus, mars, jupiter, saturn]
 
     while running:
-        dt = clock.tick(60) / 1000.0
+        dt = clock.tick(60) / 1000.0 * timescale
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 running = False
             elif e.type == pygame.KEYDOWN:
                 if e.key in (pygame.K_x, pygame.K_ESCAPE): running = False
                 if e.key == pygame.K_s: show_trails = not show_trails
+                if e.key == pygame.K_j: timescale *= 0.5
+                if e.key == pygame.K_k: timescale *= 2
             elif e.type == pygame.MOUSEBUTTONDOWN:
                 if e.button == 4: Body.SCALE *= 1.1
                 if e.button == 5: Body.SCALE *= 0.9
@@ -146,7 +149,7 @@ def main():
 
         # UI
         screen.blit(FONT.render(f"FPS: {int(clock.get_fps())}", True, COLOR_WHITE), (10, 10))
-        screen.blit(FONT.render("Arrows to pan, Scroll to zoom, S to toggle trails", True, COLOR_WHITE), (10, 40))
+        screen.blit(FONT.render("Arrows to pan, Scroll to zoom, S to toggle trails, J/K to slow down/speed up", True, COLOR_WHITE), (10, 40))
 
         pygame.display.flip()
 
