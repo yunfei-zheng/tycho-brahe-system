@@ -45,8 +45,9 @@ SUN_DISTANCE_FROM_EARTH = 200
 # a = time variable
 
 def sun_position(radius, orbit_speed, time, init_angle):
-    x = WIDTH + SUN_DISTANCE_FROM_EARTH*(math.cos(time) + radius*(math.cos(orbit_speed * time + init_angle)))
-    y = HEIGHT + SUN_DISTANCE_FROM_EARTH*(math.sin(time) + radius*(math.sin(orbit_speed * time + init_angle)))
+    sc = PlanetAndEpicycles.SCALE
+    x = WIDTH + sc*SUN_DISTANCE_FROM_EARTH*(math.cos(time) + radius*(math.cos(orbit_speed * time + init_angle)))
+    y = HEIGHT + sc*SUN_DISTANCE_FROM_EARTH*(math.sin(time) + radius*(math.sin(orbit_speed * time + init_angle)))
 
     PlanetAndEpicycles.sun_x = x
     PlanetAndEpicycles.sun_y = y
@@ -55,9 +56,10 @@ def sun_position(radius, orbit_speed, time, init_angle):
 
 def planet_position(orbit_speed, time, init_angle, distance_from_sun):
     sun_x, sun_y = PlanetAndEpicycles.sun_x, PlanetAndEpicycles.sun_y
+    sc = PlanetAndEpicycles.SCALE
 
-    x = sun_x + distance_from_sun * math.cos(orbit_speed * time + init_angle)
-    y = sun_y + distance_from_sun * math.sin(orbit_speed * time + init_angle)
+    x = sun_x + sc*distance_from_sun * math.cos(orbit_speed * time + init_angle)
+    y = sun_y + sc*distance_from_sun * math.sin(orbit_speed * time + init_angle)
 
     return x, y
 
@@ -65,7 +67,8 @@ class PlanetAndEpicycles:
     AU = 149.6e6 * 1000  # Astronomical unit to km
     G = 6.67428e-11  # Gravitational constant
     TIMESTEP = 60 * 60 * 24 * 2  # Seconds in 2 days
-    SCALE = 200 / AU
+    #SCALE = 200 / AU
+    SCALE = 1
 
     sun_x = 0
     sun_y = 0
@@ -85,12 +88,15 @@ class PlanetAndEpicycles:
         self.distance_from_sun = distance_from_sun
 
     def draw(self, window, draw_line):
+        x = self.x * self.SCALE + WIDTH
+        y = self.y * self.SCALE + HEIGHT
+
         if len(self.orbit) > 2:
             updated_points = []
             for point in self.orbit:
                 x, y = point
-                #x = x * self.SCALE + WIDTH / 2
-                #y = y * self.SCALE + HEIGHT / 2
+                #x = x * self.SCALE + WIDTH
+                #y = y * self.SCALE + HEIGHT
                 #updated_points.append((x + move_x, y + move_y))
                 updated_points.append((x, y))
             if draw_line:
@@ -103,18 +109,19 @@ class PlanetAndEpicycles:
             # Other planets orbit around Sun
             # Then calculate planet's position relative to Sun
             self.x, self.y = planet_position(self.orbit_speed, self.time, self.init_angle, self.distance_from_sun)
-            
             pygame.draw.circle(window, self.color, (int(self.x), int(self.y)), self.radius)
     
     def update_position(self, time):
         self.time = time  # Update the time property
         # So it doesn't count starting point?
-        if self.time > 0.05:
-            self.orbit.append((self.x, self.y))
+        self.orbit.append((self.x, self.y))
+
+    def update_scale(self, scale):
+        self.radius *= scale
 
 def draw_earth(window):
     # Draw Earth at the center
-    pygame.draw.circle(window, COLOR_EARTH, (WIDTH, HEIGHT), 15)
+    pygame.draw.circle(window, COLOR_EARTH, (WIDTH, HEIGHT), 15 * PlanetAndEpicycles.SCALE)
 
 def main():
     run = True
@@ -148,6 +155,14 @@ def main():
                 run = False
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
                 draw_line = not draw_line
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
+                PlanetAndEpicycles.SCALE *= 0.75
+                for planet in planets:
+                    planet.update_scale(0.75)
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:
+                PlanetAndEpicycles.SCALE *= 1.25
+                for planet in planets:
+                    planet.update_scale(1.25)
         
         # Clear the screen
         WINDOW.fill(COLOR_UNIVERSE)
@@ -168,6 +183,8 @@ def main():
         WINDOW.blit(text_surface, (15, 45))
         text_surface = FONT_1.render("Press S to turn on/off drawing orbit lines", True, COLOR_WHITE)
         WINDOW.blit(text_surface, (15, 105))
+        text_surface = FONT_1.render("Use scroll-wheel to zoom", True, COLOR_WHITE)
+        WINDOW.blit(text_surface, (15, 225))
 
         sun_surface = FONT_1.render("- Sun", True, COLOR_SUN)
         WINDOW.blit(sun_surface, (15, 285))
