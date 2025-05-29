@@ -1,5 +1,6 @@
+
 # ===========================================
-# - Tycho Brahe's System of the Universe Simulation
+# - Tycho Brahe's Geocentric Solar System Simulation
 # - Yunfei Zheng, Joyce Zou, Minh Nguyen ---
 # - Understanding the Universe: From Atoms to the Big Bang (SP25)
 # - May 2025
@@ -8,12 +9,6 @@
 # - Author: @zerot69
 # - Date:   27 Apr 2022
 # ===========================================
-
-# TODO:
-# The current calculations for the orbits seem to make it shift down, and move,
-#  but we can probably just do fixed orbits.
-# Add new features, like speeding up or slowing down
-# maybe make the planets sizes bigger
 
 import pygame
 import math
@@ -28,64 +23,76 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Tycho Brahe Solar System")
 
 # Colors
-COLOR_BG     = (36, 36, 36)
-COLOR_EARTH  = (107, 147, 214)
-COLOR_SUN    = (252, 150,   1)
-COLOR_VENUS  = ( 80, 200, 120)
-COLOR_WHITE  = (255, 255, 255)
+COLOR_BG      = (36, 36, 36)
+COLOR_EARTH   = (107, 147, 214)
+COLOR_SUN     = (252, 150,   1)
+COLOR_MOON    = (200, 200, 200)
+COLOR_MERCURY = (169, 169, 169)
+COLOR_VENUS   = ( 80, 200, 120)
+COLOR_MARS    = (188,  39,  50)
+COLOR_JUPITER = (205, 133,  63)
+COLOR_SATURN  = (210, 180, 140)
+COLOR_WHITE   = (255, 255, 255)
 
 # Font
 FONT = pygame.font.SysFont("Trebuchet MS", 20)
 
 # Distances (in pixels)
-SUN_DIST = 200  # Sun orbits Earth at this radius
+SUN_DIST        = 500  # Increased: Sun orbits Earth at this radius
+MOON_DIST       = 60   # Moon orbits Earth
+MERCURY_DIST    = 100
+VENUS_DIST      = 150
+MARS_DIST       = 200
+JUPITER_DIST    = 275
+SATURN_DIST     = 325
 
 class Body:
-    SCALE = 1.0  # global scale factor for zoom
-    sun_world = (0.0, 0.0)  # world coords of Sun
+    SCALE = 1.0  # zoom
+    sun_world = (0.0, 0.0)  # sun position in world coords
 
-    def __init__(self, color, speed, init_angle, radius, dist_from_sun, is_sun=False):
+    def __init__(self, color, speed, init_angle, radius, dist, kind='planet'):
         self.color = color
         self.speed = speed
         self.angle = init_angle
         self.radius = radius
-        self.dist = dist_from_sun
-        self.is_sun = is_sun
-        self.trail = []  # stores past world positions
+        self.dist = dist
+        self.kind = kind  # 'sun', 'moon', or 'planet'
+        self.trail = []
+        self.world = (0.0, 0.0)
 
     def update(self, dt):
-        # advance angular position
         self.angle += self.speed * dt
-        # compute world coords
-        if self.is_sun:
-            # Sun orbits Earth
+        # world coords
+        if self.kind == 'sun':
             wx = SUN_DIST * math.cos(self.angle)
             wy = SUN_DIST * math.sin(self.angle)
             Body.sun_world = (wx, wy)
+        elif self.kind == 'moon':
+            wx = MOON_DIST * math.cos(self.angle)
+            wy = MOON_DIST * math.sin(self.angle)
         else:
-            # planet orbits Sun's world position
             sx, sy = Body.sun_world
             wx = sx + self.dist * math.cos(self.angle)
             wy = sy + self.dist * math.sin(self.angle)
-        self.trail.append((wx, wy))
-        # limit trail length
+        self.world = (wx, wy)
+        self.trail.append(self.world)
         if len(self.trail) > 300:
             self.trail.pop(0)
-        self.world = (wx, wy)
 
-    def draw(self, surf, offset_x, offset_y):
-        # draw trail
-        if len(self.trail) > 2:
+    def draw(self, surf, ox, oy, show_trail=True):
+        # trail
+        if show_trail and len(self.trail) > 2:
             pts = [(
-                int(CENTER_X + px * Body.SCALE + offset_x),
-                int(CENTER_Y + py * Body.SCALE + offset_y)
+                int(CENTER_X + px * Body.SCALE + ox),
+                int(CENTER_Y + py * Body.SCALE + oy)
             ) for px, py in self.trail]
             pygame.draw.lines(surf, self.color, False, pts, 1)
-        # draw body
+        # body
         wx, wy = self.world
-        sx = int(CENTER_X + wx * Body.SCALE + offset_x)
-        sy = int(CENTER_Y + wy * Body.SCALE + offset_y)
+        sx = int(CENTER_X + wx * Body.SCALE + ox)
+        sy = int(CENTER_Y + wy * Body.SCALE + oy)
         pygame.draw.circle(surf, self.color, (sx, sy), int(self.radius * Body.SCALE))
+
 
 def draw_earth(surf, ox, oy):
     pygame.draw.circle(
@@ -94,16 +101,22 @@ def draw_earth(surf, ox, oy):
         int(15 * Body.SCALE)
     )
 
+
 def main():
     clock = pygame.time.Clock()
     running = True
-    offset_x = offset_y = 0
-    draw_trails = True
+    ox = oy = 0
+    show_trails = True
 
-    # create bodies
-    sun = Body(COLOR_SUN,   0.5, 0.0, 20, 0, is_sun=True)
-    venus = Body(COLOR_VENUS, 1.5, math.radians(45), 8, 100)
-    bodies = [sun, venus]
+    # create bodies: sun, moon, and planets
+    sun     = Body(COLOR_SUN,     0.5,  0.0, 20,    0, kind='sun')
+    moon    = Body(COLOR_MOON,    2.0,  math.radians(0), 6, 0, kind='moon')
+    mercury = Body(COLOR_MERCURY, 3.0,  math.radians(0), 5, MERCURY_DIST)
+    venus   = Body(COLOR_VENUS,   2.5,  math.radians(45), 7, VENUS_DIST)
+    mars    = Body(COLOR_MARS,    1.8,  math.radians(90), 6, MARS_DIST)
+    jupiter = Body(COLOR_JUPITER, 1.2,  math.radians(135),12, JUPITER_DIST)
+    saturn  = Body(COLOR_SATURN,  0.8,  math.radians(180),10, SATURN_DIST)
+    bodies = [sun, moon, mercury, venus, mars, jupiter, saturn]
 
     while running:
         dt = clock.tick(60) / 1000.0
@@ -112,40 +125,28 @@ def main():
                 running = False
             elif e.type == pygame.KEYDOWN:
                 if e.key in (pygame.K_x, pygame.K_ESCAPE): running = False
-                if e.key == pygame.K_s: draw_trails = not draw_trails
+                if e.key == pygame.K_s: show_trails = not show_trails
             elif e.type == pygame.MOUSEBUTTONDOWN:
-                # zoom
                 if e.button == 4: Body.SCALE *= 1.1
                 if e.button == 5: Body.SCALE *= 0.9
 
-        # pan with arrow keys
+        # pan
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:  offset_x += 5
-        if keys[pygame.K_RIGHT]: offset_x -= 5
-        if keys[pygame.K_UP]:    offset_y += 5
-        if keys[pygame.K_DOWN]:  offset_y -= 5
+        if keys[pygame.K_LEFT]:  ox += 5
+        if keys[pygame.K_RIGHT]: ox -= 5
+        if keys[pygame.K_UP]:    oy += 5
+        if keys[pygame.K_DOWN]:  oy -= 5
 
-        # update positions
+        # update and draw
+        screen.fill(COLOR_BG)
+        draw_earth(screen, ox, oy)
         for b in bodies:
             b.update(dt)
+            b.draw(screen, ox, oy, show_trails)
 
-        # draw
-        screen.fill(COLOR_BG)
-        draw_earth(screen, offset_x, offset_y)
-        for b in bodies:
-            if draw_trails: b.draw(screen, offset_x, offset_y)
-            else:
-                # draw without trails
-                wx, wy = b.world
-                sx = int(CENTER_X + wx * Body.SCALE + offset_x)
-                sy = int(CENTER_Y + wy * Body.SCALE + offset_y)
-                pygame.draw.circle(screen, b.color, (sx, sy), int(b.radius * Body.SCALE))
-
-        # UI text
-        fps = FONT.render(f"FPS: {int(clock.get_fps())}", True, COLOR_WHITE)
-        screen.blit(fps, (10, 10))
-        instr = FONT.render("Arrows to pan, Scroll to zoom, S to toggle trails", True, COLOR_WHITE)
-        screen.blit(instr, (10, 40))
+        # UI
+        screen.blit(FONT.render(f"FPS: {int(clock.get_fps())}", True, COLOR_WHITE), (10, 10))
+        screen.blit(FONT.render("Arrows to pan, Scroll to zoom, S to toggle trails", True, COLOR_WHITE), (10, 40))
 
         pygame.display.flip()
 
