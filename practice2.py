@@ -50,7 +50,8 @@ class Body:
     SCALE = 1.0  # zoom
     sun_world = (0.0, 0.0)  # sun position in world coords
 
-    def __init__(self, color, speed, init_angle, radius, dist, kind='planet'):
+    def __init__(self, label, color, speed, init_angle, radius, dist, kind='planet'):
+        self.label = label
         self.color = color
         self.speed = speed
         self.angle = init_angle
@@ -79,7 +80,7 @@ class Body:
         #if len(self.trail) > 300:
         #    self.trail.pop(0)
 
-    def draw(self, surf, ox, oy, show_trail=True):
+    def draw(self, surf, ox, oy, show_trail=True, show_label=True):
         # trail
         if show_trail and len(self.trail) > 2:
             pts = [(
@@ -92,31 +93,37 @@ class Body:
         sx = int(CENTER_X + wx * Body.SCALE + ox)
         sy = int(CENTER_Y + wy * Body.SCALE + oy)
         pygame.draw.circle(surf, self.color, (sx, sy), int(self.radius * Body.SCALE))
+        # label
+        if show_label:
+            screen.blit(FONT.render(self.label, True, COLOR_WHITE), (sx, sy))
 
 
-def draw_earth(surf, ox, oy):
+def draw_earth(surf, ox, oy, show_label=True):
     pygame.draw.circle(
         surf, COLOR_EARTH,
         (CENTER_X + ox, CENTER_Y + oy),
         int(15 * Body.SCALE)
     )
+    if show_label:
+        screen.blit(FONT.render("Earth", True, COLOR_WHITE), (CENTER_X + ox, CENTER_Y + oy))
 
 
 def main():
     clock = pygame.time.Clock()
     running = True
     ox = oy = 0
+    show_labels = True
     show_trails = True
     timescale = 1
 
     # create bodies: sun, moon, and planets
-    sun     = Body(COLOR_SUN,     0.5,  0.0, 20,    0, kind='sun')
-    moon    = Body(COLOR_MOON,    2.0,  math.radians(0), 6, 0, kind='moon')
-    mercury = Body(COLOR_MERCURY, 3.0,  math.radians(0), 5, MERCURY_DIST)
-    venus   = Body(COLOR_VENUS,   2.5,  math.radians(45), 7, VENUS_DIST)
-    mars    = Body(COLOR_MARS,    1.8,  math.radians(90), 6, MARS_DIST)
-    jupiter = Body(COLOR_JUPITER, 1.2,  math.radians(135),12, JUPITER_DIST)
-    saturn  = Body(COLOR_SATURN,  0.8,  math.radians(180),10, SATURN_DIST)
+    sun     = Body("Sun", COLOR_SUN,     0.5,  0.0, 20,    0, kind='sun')
+    moon    = Body("Moon", COLOR_MOON,    2.0,  math.radians(0), 6, 0, kind='moon')
+    mercury = Body("Mercury", COLOR_MERCURY, 3.0,  math.radians(0), 5, MERCURY_DIST)
+    venus   = Body("Venus", COLOR_VENUS,   2.5,  math.radians(45), 7, VENUS_DIST)
+    mars    = Body("Mars", COLOR_MARS,    1.8,  math.radians(90), 6, MARS_DIST)
+    jupiter = Body("Jupiter", COLOR_JUPITER, 1.2,  math.radians(135),12, JUPITER_DIST)
+    saturn  = Body("Saturn", COLOR_SATURN,  0.8,  math.radians(180),10, SATURN_DIST)
     bodies = [sun, moon, mercury, venus, mars, jupiter, saturn]
 
     while running:
@@ -126,6 +133,7 @@ def main():
                 running = False
             elif e.type == pygame.KEYDOWN:
                 if e.key in (pygame.K_x, pygame.K_ESCAPE): running = False
+                if e.key == pygame.K_l: show_labels = not show_labels
                 if e.key == pygame.K_s: show_trails = not show_trails
                 if e.key == pygame.K_j: timescale *= 0.5
                 if e.key == pygame.K_k: timescale *= 2
@@ -142,14 +150,15 @@ def main():
 
         # update and draw
         screen.fill(COLOR_BG)
-        draw_earth(screen, ox, oy)
+        draw_earth(screen, ox, oy, show_labels)
         for b in bodies:
             b.update(dt)
-            b.draw(screen, ox, oy, show_trails)
+            b.draw(screen, ox, oy, show_trails, show_labels)
 
         # UI
         screen.blit(FONT.render(f"FPS: {int(clock.get_fps())}", True, COLOR_WHITE), (10, 10))
-        screen.blit(FONT.render("Arrows to pan, Scroll to zoom, S to toggle trails, J/K to slow down/speed up", True, COLOR_WHITE), (10, 40))
+        screen.blit(FONT.render("Arrows to pan, Scroll to zoom", True, COLOR_WHITE), (10, 40))
+        screen.blit(FONT.render("S: Toggle trails, J/K: Slow down/speed up, L: Toggle labels", True, COLOR_WHITE), (10, 70))
 
         pygame.display.flip()
 
