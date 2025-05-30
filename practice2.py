@@ -115,6 +115,7 @@ def main():
     show_labels = True
     show_trails = True
     timescale = 1
+    active = 7 # 7 is all, 2-6 are Mercury-Saturn (index in bodies)
 
     # create bodies: sun, moon, and planets
     sun     = Body("Sun", COLOR_SUN,     0.5,  0.0, 20,    0, kind='sun')
@@ -133,6 +134,7 @@ def main():
                 running = False
             elif e.type == pygame.KEYDOWN:
                 if e.key in (pygame.K_x, pygame.K_ESCAPE): running = False
+                if e.key == pygame.K_a: active = 2 if active == 7 else active + 1
                 if e.key == pygame.K_l: show_labels = not show_labels
                 if e.key == pygame.K_s: show_trails = not show_trails
                 if e.key == pygame.K_j: timescale *= 0.5
@@ -151,13 +153,17 @@ def main():
         # update and draw
         screen.fill(COLOR_BG)
         draw_earth(screen, ox, oy, show_labels)
-        for b in bodies:
+        for n, b in enumerate(bodies):
             b.update(dt)
-            b.draw(screen, ox, oy, show_trails, show_labels)
+            if active == 7:
+                b.draw(screen, ox, oy, show_trails, show_labels)
+            # Only draw sun, moon, and active planet
+            elif n < 2 or active == n:
+                b.draw(screen, ox, oy, show_trails, show_labels)
 
         # UI
         screen.blit(FONT.render(f"FPS: {int(clock.get_fps())}", True, COLOR_WHITE), (10, 10))
-        screen.blit(FONT.render("Arrows to pan, Scroll to zoom", True, COLOR_WHITE), (10, 40))
+        screen.blit(FONT.render("Arrows to pan, Scroll to zoom, A to focus on one planet", True, COLOR_WHITE), (10, 40))
         screen.blit(FONT.render("S: Toggle trails, J/K: Slow down/speed up, L: Toggle labels", True, COLOR_WHITE), (10, 70))
 
         pygame.display.flip()
