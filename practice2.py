@@ -77,8 +77,8 @@ class Body:
             wy = sy + self.dist * math.sin(self.angle)
         self.world = (wx, wy)
         self.trail.append(self.world)
-        #if len(self.trail) > 300:
-        #    self.trail.pop(0)
+        if len(self.trail) > 300:
+            self.trail.pop(0)
 
     def draw(self, surf, ox, oy, show_trail=True, show_label=True):
         # trail
